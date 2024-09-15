@@ -1,13 +1,22 @@
-import OnScreenKeyboard, { BACKSPACE, ENTER } from '@/components/OnScreenKeyboard';
-import SettingsModal from '@/components/SettingsModal';
-import { Colors } from '@/constants/Colors';
-import { allWords } from '@/utils/allWords';
-import { words } from '@/utils/targetWords';
-import { Ionicons } from '@expo/vector-icons';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { Stack, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, useColorScheme, View } from 'react-native';
+import OnScreenKeyboard, {
+  BACKSPACE,
+  ENTER,
+} from "@/components/OnScreenKeyboard";
+import { Colors } from "@/constants/Colors";
+import { allWordsTurkish, allWords } from "@/utils/allWords";
+import { storage } from "@/utils/storage";
+import { wordsTurkish, words } from "@/utils/targetWords";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
+import { useMMKVString } from "react-native-mmkv";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,34 +25,44 @@ import Animated, {
   withSequence,
   withTiming,
   ZoomIn,
-} from 'react-native-reanimated';
+} from "react-native-reanimated";
 
 const ROWS = 6;
 
 const Page = () => {
-  const [word, setWord] = useState(words[Math.floor(Math.random() * words.length)]);
-  const colorScheme = useColorScheme();
-  const backgroundColor = Colors[colorScheme ?? 'light'].gameBg;
-  const textColor = Colors[colorScheme ?? 'light'].text;
-  const grayColor = Colors[colorScheme ?? 'light'].gray;
+  const [language] = useMMKVString("language", storage);
+  const [word, setWord] = useState<string | undefined>();
 
-  // const [word, setWord] = useState('simon');
+  useEffect(() => {
+    const getRandomWord = (array: string[]) =>
+      array[Math.floor(Math.random() * array.length)];
+    if (language === "tr") {
+      setWord(getRandomWord(wordsTurkish));
+      console.log(getRandomWord(wordsTurkish));
+    } else if (language === "en") {
+      setWord(getRandomWord(words));
+      console.log(getRandomWord(words));
+    }
+  }, []);
+
+  const colorScheme = useColorScheme();
+  const backgroundColor = Colors[colorScheme ?? "light"].gameBg;
+  const textColor = Colors[colorScheme ?? "light"].text;
+  const grayColor = Colors[colorScheme ?? "light"].gray;
+
   const router = useRouter();
 
-  console.log('🚀 ~ Page ~ word:', word);
-  const wordLetters = word.split('');
+  const wordLetters = word ? word.split("") : [];
 
-  const [rows, setRows] = useState<string[][]>(new Array(ROWS).fill(new Array(5).fill('')));
+  const [rows, setRows] = useState<string[][]>(
+    new Array(ROWS).fill(new Array(5).fill(""))
+  );
   const [curRow, setCurRow] = useState(0);
   const [curCol, _setCurCol] = useState(0);
 
   const [greenLetters, setGreenLetters] = useState<string[]>([]);
   const [yellowLetters, setYellowLetters] = useState<string[]>([]);
   const [grayLetters, setGrayLetters] = useState<string[]>([]);
-
-  const settingsModalRef = useRef<BottomSheetModal>(null);
-
-  const handlePresentSubscribeModalPress = () => settingsModalRef.current?.present();
 
   const colStateRef = useRef(curCol);
   const setCurCol = (data: number) => {
@@ -52,20 +71,20 @@ const Page = () => {
   };
 
   const addKey = (key: string) => {
-    console.log('CURRENT: ', colStateRef.current);
+    console.log("CURRENT: ", colStateRef.current);
 
     const newRows = [...rows.map((row) => [...row])];
 
-    if (key === 'ENTER') {
+    if (key === "ENTER") {
       checkWord();
-    } else if (key === 'BACKSPACE') {
+    } else if (key === "BACKSPACE") {
       if (colStateRef.current === 0) {
-        newRows[curRow][0] = '';
+        newRows[curRow][0] = "";
         setRows(newRows);
         return;
       }
 
-      newRows[curRow][colStateRef.current - 1] = '';
+      newRows[curRow][colStateRef.current - 1] = "";
 
       setCurCol(colStateRef.current - 1);
       setRows(newRows);
@@ -73,7 +92,7 @@ const Page = () => {
     } else if (colStateRef.current >= newRows[curRow].length) {
       // EoL don't add keys
     } else {
-      console.log('🚀 ~ addKey ~ curCol', colStateRef.current);
+      console.log("🚀 ~ addKey ~ curCol", colStateRef.current);
 
       newRows[curRow][colStateRef.current] = key;
       setRows(newRows);
@@ -82,25 +101,36 @@ const Page = () => {
   };
 
   const checkWord = () => {
-    const currentWord = rows[curRow].join('');
+    const currentWord = rows[curRow].join("");
 
-    if (currentWord.length < word.length) {
+    if (word && currentWord.length < word.length) {
       shakeRow();
       return;
     }
-
-    if (!allWords.includes(currentWord)) {
-      console.log('NOT A WORD');
-      shakeRow();
-      return;
+    if (language === "tr") {
+      if (!allWordsTurkish.includes(currentWord.toLowerCase())) {
+        console.log(currentWord.toLowerCase());
+        console.log("Kelime değil");
+        shakeRow();
+        return;
+      }
     }
+
+    if (language === "en") {
+      if (!allWords.includes(currentWord)) {
+        console.log("NOT A WORD");
+        shakeRow();
+        return;
+      }
+    }
+
     flipRow();
 
     const newGreen: string[] = [];
     const newYellow: string[] = [];
     const newGray: string[] = [];
 
-    currentWord.split('').forEach((letter, index) => {
+    currentWord.split("").forEach((letter, index) => {
       if (letter === wordLetters[index]) {
         newGreen.push(letter);
       } else if (wordLetters.includes(letter)) {
@@ -116,11 +146,15 @@ const Page = () => {
 
     setTimeout(() => {
       if (currentWord === word) {
-        console.log('🚀 ~ checkWord ~ WIN');
-        router.push(`/end?win=true&word=${word}&gameField=${JSON.stringify(rows)}`);
+        console.log("🚀 ~ checkWord ~ WIN");
+        router.push(
+          `/end?win=true&word=${word}&gameField=${JSON.stringify(rows)}`
+        );
       } else if (curRow + 1 >= rows.length) {
-        console.log('GAME OVER');
-        router.push(`/end?win=false&word=${word}&gameField=${JSON.stringify(rows)}`);
+        console.log("GAME OVER");
+        router.push(
+          `/end?win=false&word=${word}&gameField=${JSON.stringify(rows)}`
+        );
       }
     }, 1500);
     setCurRow(curRow + 1);
@@ -129,23 +163,23 @@ const Page = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: any) => {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         addKey(ENTER);
-      } else if (e.key === 'Backspace') {
+      } else if (e.key === "Backspace") {
         addKey(BACKSPACE);
       } else if (e.key.length === 1) {
         addKey(e.key);
       }
     };
 
-    if (Platform.OS === 'web') {
-      document.addEventListener('keydown', handleKeyDown);
+    if (Platform.OS === "web") {
+      document.addEventListener("keydown", handleKeyDown);
     }
 
     // Don't forget to clean up
     return () => {
-      if (Platform.OS === 'web') {
-        document.removeEventListener('keydown', handleKeyDown);
+      if (Platform.OS === "web") {
+        document.removeEventListener("keydown", handleKeyDown);
       }
     };
   }, [curCol]);
@@ -191,12 +225,18 @@ const Page = () => {
         );
       }
     } else {
-      cellBackgrounds[rowIndex][cellIndex].value = withTiming('transparent', { duration: 100 });
+      cellBackgrounds[rowIndex][cellIndex].value = withTiming("transparent", {
+        duration: 100,
+      });
     }
   };
 
-  const setBorderColor = (cell: string, rowIndex: number, cellIndex: number) => {
-    if (curRow > rowIndex && cell !== '') {
+  const setBorderColor = (
+    cell: string,
+    rowIndex: number,
+    cellIndex: number
+  ) => {
+    if (curRow > rowIndex && cell !== "") {
       if (wordLetters[cellIndex] === cell) {
         cellBorders[rowIndex][cellIndex].value = withDelay(
           cellIndex * 200,
@@ -208,7 +248,10 @@ const Page = () => {
           withTiming(Colors.light.yellow)
         );
       } else {
-        cellBorders[rowIndex][cellIndex].value = withDelay(cellIndex * 200, withTiming(grayColor));
+        cellBorders[rowIndex][cellIndex].value = withDelay(
+          cellIndex * 200,
+          withTiming(grayColor)
+        );
       }
     }
     return Colors.light.gray;
@@ -229,7 +272,7 @@ const Page = () => {
   );
 
   const cellBackgrounds = Array.from({ length: ROWS }, () =>
-    Array.from({ length: 5 }, () => useSharedValue('transparent'))
+    Array.from({ length: 5 }, () => useSharedValue("transparent"))
   );
 
   const cellBorders = Array.from({ length: ROWS }, () =>
@@ -285,14 +328,17 @@ const Page = () => {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <SettingsModal ref={settingsModalRef} />
       <Stack.Screen
         options={{
           headerRight: () => (
             <View style={styles.headerIcons}>
-              <Ionicons name="help-circle-outline" size={28} color={textColor} />
+              <Ionicons
+                name="help-circle-outline"
+                size={28}
+                color={textColor}
+              />
               <Ionicons name="podium-outline" size={24} color={textColor} />
-              <TouchableOpacity onPress={handlePresentSubscribeModalPress}>
+              <TouchableOpacity>
                 <Ionicons name="settings-sharp" size={24} color={textColor} />
               </TouchableOpacity>
             </View>
@@ -301,11 +347,15 @@ const Page = () => {
       />
       <View style={styles.gameField}>
         {rows.map((row, rowIndex) => (
-          <Animated.View style={[styles.gameFieldRow, rowStyles[rowIndex]]} key={`row-${rowIndex}`}>
+          <Animated.View
+            style={[styles.gameFieldRow, rowStyles[rowIndex]]}
+            key={`row-${rowIndex}`}
+          >
             {row.map((cell, cellIndex) => (
               <Animated.View
                 entering={ZoomIn.delay(50 * cellIndex)}
-                key={`cell-${rowIndex}-${cellIndex}`}>
+                key={`cell-${rowIndex}-${cellIndex}`}
+              >
                 <Animated.View
                   style={[
                     styles.cell,
@@ -314,15 +364,17 @@ const Page = () => {
                     //   backgroundColor: getCellColor(cell, rowIndex, cellIndex),
                     // },
                     tileStyles[rowIndex][cellIndex],
-                  ]}>
+                  ]}
+                >
                   <Animated.Text
                     style={[
                       styles.cellText,
                       {
-                        color: curRow > rowIndex ? '#fff' : textColor,
+                        color: curRow > rowIndex ? "#fff" : textColor,
                       },
-                    ]}>
-                    {cell}
+                    ]}
+                  >
+                    {cell === "i" ? "İ" : cell}
                   </Animated.Text>
                 </Animated.View>
               </Animated.View>
@@ -347,28 +399,28 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   gameField: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 8,
   },
   gameFieldRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   cell: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     width: 62,
     height: 62,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
   },
   cellText: {
     fontSize: 30,
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
+    textTransform: "uppercase",
+    fontWeight: "bold",
   },
   headerIcons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
 });

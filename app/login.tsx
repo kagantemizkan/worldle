@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { useState } from "react";
 import { defaultStyles } from "@/constants/Styles";
+import { useTranslation } from "react-i18next";
 
 enum Strategy {
   Google = "oauth_google",
@@ -21,6 +22,7 @@ enum Strategy {
 
 const Page = () => {
   const router = useRouter();
+  const { t, i18n } = useTranslation();
 
   const [email, setEmail] = useState("");
   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: "oauth_google" });
@@ -41,7 +43,7 @@ const Page = () => {
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
-        router.back();
+        // router.back();
       }
     } catch (err) {
       console.error("OAuth error", err);
@@ -50,22 +52,19 @@ const Page = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>Log in or create an account</Text>
-      <Text style={styles.subText}>
-        By continuing, you agree to the Terms of Sale, Terms of Service, and
-        Privacy Policy.
-      </Text>
+      <Text style={styles.header}>{t("logInOrCreateAccount")}</Text>
+      <Text style={styles.subText}>{t("agreeToTerms")}</Text>
 
-      <Text style={styles.inputLabel}>Email address</Text>
+      <Text style={styles.inputLabel}>{t("emailAddress")}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder={t("emailPlaceholder")}
         value={email}
         onChangeText={setEmail}
       />
 
       <TouchableOpacity style={defaultStyles.btn}>
-        <Text style={defaultStyles.btnText}>Continue with email</Text>
+        <Text style={defaultStyles.btnText}>{t("continueWithEmail")}</Text>
       </TouchableOpacity>
 
       <View style={styles.seperatorView}>
@@ -76,7 +75,7 @@ const Page = () => {
             borderBottomWidth: StyleSheet.hairlineWidth,
           }}
         />
-        <Text style={styles.seperator}>OR</Text>
+        <Text style={styles.seperator}>{t("or")}</Text>
         <View
           style={{
             flex: 1,
@@ -92,7 +91,7 @@ const Page = () => {
           onPress={() => onSelectAuth(Strategy.Google)}
         >
           <Ionicons name="logo-google" size={24} style={styles.btnIcon} />
-          <Text style={styles.btnOutlineText}>Continue with Google</Text>
+          <Text style={styles.btnOutlineText}>{t("continueWithGoogle")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -100,7 +99,7 @@ const Page = () => {
           onPress={() => onSelectAuth(Strategy.Facebook)}
         >
           <Ionicons name="logo-facebook" size={24} style={styles.btnIcon} />
-          <Text style={styles.btnOutlineText}>Continue with Facebook</Text>
+          <Text style={styles.btnOutlineText}>{t("continueWithFacebook")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -108,7 +107,7 @@ const Page = () => {
           onPress={() => onSelectAuth(Strategy.Apple)}
         >
           <Ionicons name="logo-apple" size={24} style={styles.btnIcon} />
-          <Text style={styles.btnOutlineText}>Continue with Apple</Text>
+          <Text style={styles.btnOutlineText}>{t("continueWithApple")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

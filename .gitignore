@@ -46,3 +46,4 @@ android/
 ios/
 # Local Netlify folder
 .netlify
+utils/FirebaseConfig.ts
