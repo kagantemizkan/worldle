@@ -1,7 +1,6 @@
-# React Native Wordle Clone with Clerk
+# React Native Wordle Clone
 
-This is a React Native Wordle clone using [Clerk](https://go.clerk.com/ztAWdYK) for user accounts to replicate the popular game [Wordle](https://www.nytimes.com/games/wordle/index.html). This project is a great way to learn how to build a full-stack mobile app with React Native, Firebase, and Clerk.
-
+This is a React Native Wordle clone using [Clerk](https://go.clerk.com/ztAWdYK) for user accounts to replicate the popular game [Wordle](https://www.nytimes.com/games/wordle/index.html).
 Additional features:
 
 - [Expo Router](https://docs.expo.dev/routing/introduction/) file-based navigation
@@ -35,13 +34,10 @@ Additional features:
 <img src="./screenshots/shake.gif" width=30%>
 <img src="./screenshots/colors.gif" width=30%>
 <img src="./screenshots/win.gif" width=30%>
-
 </div>
 
 ## 🚀 More
 
-**Take a shortcut from web developer to mobile development fluency with guided learning**
+If you would like to contribute, please open a pull request or create an issue.
 
-Enjoyed this project? Learn to use React Native to build production-ready, native mobile apps for both iOS and Android based on your existing web development skills.
-
-<a href="https://galaxies.dev"><img src="banner.png" height="auto" width="100%"></a>
+Go check out [Simon Grimm](https://www.youtube.com/watch?v=pTonpjmKtiE) for the tutorial 
