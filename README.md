@@ -34,8 +34,10 @@ Additional features:
 <img src="./screenshots/shake.gif" width=30%>
 <img src="./screenshots/colors.gif" width=30%>
 <img src="./screenshots/win.gif" width=30%>
-
 </div>
 
 ## 🚀 More
 
+If you would like to contribute, please open a pull request or create an issue.
+
+Go check out [Simon Grimm](https://www.youtube.com/watch?v=pTonpjmKtiE) for the tutorial 
